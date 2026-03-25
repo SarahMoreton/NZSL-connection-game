@@ -3,34 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connections Game & Wordle Game</title>
+    <title>NZSL Connection and Wordle Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Welcome to the Connections Game and Wordle</h1>
-    <div id="game-area">
-        <h2>Connections Game</h2>
-        <p>Description and rules of the game...</p>
-        <!-- Add game interactivity and images here -->
-        <h2>Wordle Game</h2>
-        <p>Description and rules of the game...</p>
-        <!-- Add game interactivity and images here -->
+    <div id="game-container">
+        <h1>NZSL Connection Game</h1>
+        <div id="score-tracker">
+            <p>Score: <span id="score">0</span></p>
+        </div>
+        <div id="game-area">
+            <!-- Game elements will be dynamically generated here -->
+        </div>
+        <button id="start-button">Start Game</button>
     </div>
-    <div id="nzsl-topics">
-        <h2>NZSL Topics</h2>
-        <ul>
-            <li><a href="dictionary-link-1">Topic 1</a> <img src="image1.jpg" alt="Image for topic 1"></li>
-            <li><a href="dictionary-link-2">Topic 2</a> <img src="image2.jpg" alt="Image for topic 2"></li>
-            <li><a href="dictionary-link-3">Topic 3</a> <img src="image3.jpg" alt="Image for topic 3"></li>
-            <li><a href="dictionary-link-4">Topic 4</a> <img src="image4.jpg" alt="Image for topic 4"></li>
-            <li><a href="dictionary-link-5">Topic 5</a> <img src="image5.jpg" alt="Image for topic 5"></li>
-            <li><a href="dictionary-link-6">Topic 6</a> <img src="image6.jpg" alt="Image for topic 6"></li>
-            <li><a href="dictionary-link-7">Topic 7</a> <img src="image7.jpg" alt="Image for topic 7"></li>
-            <li><a href="dictionary-link-8">Topic 8</a> <img src="image8.jpg" alt="Image for topic 8"></li>
-            <li><a href="dictionary-link-9">Topic 9</a> <img src="image9.jpg" alt="Image for topic 9"></li>
-            <li><a href="dictionary-link-10">Topic 10</a> <img src="image10.jpg" alt="Image for topic 10"></li>
-        </ul>
-    </div>
-    <script src="script.js"></script>
+
+    <script>
+        let score = 0;
+
+        function startGame() {
+            // Initialize the game
+            score = 0;
+            document.getElementById('score').innerText = score;
+            generateGameElements();
+        }
+
+        function generateGameElements() {
+            // Logic to generate game elements based on NZSL topics
+            const topics = ["Family", "Animals", "Food", "Numbers", "Colours", "Actions", "Emotions", "School", "Body Parts", "Daily Activities"];
+            // Generate game elements for each topic
+            // Each topic will have links to the NZSL dictionary and images
+        }
+
+        // Add functions for Wordle game mechanics here
+
+        document.getElementById('start-button').addEventListener('click', startGame);
+    </script>
 </body>
 </html>
