@@ -3,41 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NZSL Connection and Wordle Game</title>
+    <title>NZSL Connection Game</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
-    <div id="game-container">
+    <header>
         <h1>NZSL Connection Game</h1>
-        <div id="score-tracker">
-            <p>Score: <span id="score">0</span></p>
-        </div>
-        <div id="game-area">
-            <!-- Game elements will be dynamically generated here -->
-        </div>
-        <button id="start-button">Start Game</button>
-    </div>
+        <nav>
+            <ul>
+                <li><a href="#family">Family</a></li>
+                <li><a href="#animals">Animals</a></li>
+                <li><a href="#food">Food</a></li>
+                <li><a href="#numbers">Numbers</a></li>
+                <li><a href="#colours">Colours</a></li>
+                <li><a href="#actions">Actions</a></li>
+                <li><a href="#emotions">Emotions</a></li>
+                <li><a href="#school">School</a></li>
+                <li><a href="#body_parts">Body Parts</a></li>
+                <li><a href="#daily_activities">Daily Activities</a></li>
+            </ul>
+        </nav>
+    </header>
 
-    <script>
-        let score = 0;
+    <main>
+        <section id="game_modes">
+            <h2>Choose Game Mode</h2>
+            <button id="connections_mode">Connections</button>
+            <button id="wordle_mode">Wordle</button>
+        </section>
 
-        function startGame() {
-            // Initialize the game
-            score = 0;
-            document.getElementById('score').innerText = score;
-            generateGameElements();
-        }
+        <section id="game_area">
+            <!-- Game area for displaying questions and score -->
+            <h3 id="current_topic"></h3>
+            <div id="scoreboard">
+                <p>Score: <span id="score">0</span></p>
+            </div>
+            <div id="game_content"></div>
+        </section>
+    </main>
 
-        function generateGameElements() {
-            // Logic to generate game elements based on NZSL topics
-            const topics = ["Family", "Animals", "Food", "Numbers", "Colours", "Actions", "Emotions", "School", "Body Parts", "Daily Activities"];
-            // Generate game elements for each topic
-            // Each topic will have links to the NZSL dictionary and images
-        }
-
-        // Add functions for Wordle game mechanics here
-
-        document.getElementById('start-button').addEventListener('click', startGame);
-    </script>
+    <footer>
+        <h2>NZSL Dictionary Links</h2>
+        <ul>
+            <li><a href="https://www.nzsl.dictionary.co.nz/family">Family</a></li>
+            <li><a href="https://www.nzsl.dictionary.co.nz/animals">Animals</a></li>
+            <li><a href="https://www.nzsl.dictionary.co.nz/food">Food</a></li>
+            <li><a href="https://www.nzsl.dictionary.co.nz/numbers">Numbers</a></li>
+            <li><a href="https://www.nzsl.dictionary.co.nz/colours">Colours</a></li>
+            <li><a href="https://www.nzsl.dictionary.co.nz/actions">Actions</a></li>
+            <li><a href="https://www.nzsl.dictionary.co.nz/emotions">Emotions</a></li>
+            <li><a href="https://www.nzsl.dictionary.co.nz/school">School</a></li>
+            <li><a href="https://www.nzsl.dictionary.co.nz/body-parts">Body Parts</a></li>
+            <li><a href="https://www.nzsl.dictionary.co.nz/daily-activities">Daily Activities</a></li>
+        </ul>
+        <p>&copy; 2026 NZSL Connection Game</p>
+    </footer>
 </body>
 </html>
