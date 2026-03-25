@@ -3,54 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NZSL Connection Game</title>
+    <title>NZSL Classroom Learning Hub</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; }
-        .game-container { max-width: 800px; margin: auto; padding: 20px; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; }
-        .score { font-size: 20px; margin: 20px 0; }
-        .handshape { width: 100px; height: 100px; }
-        .category-links a { margin-right: 15px; }
+        :root {
+            --correct: #6aaa64;
+            --present: #c9b458;
+            --absent: #787c7e;
+            --nzsl-blue: #005abb;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+        .tile { padding: 20px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; background: #fff; }
+        .tile.selected { background: #bbdefb; border-color: var(--nzsl-blue); }
+        .tile.solved { color: white; cursor: default; }
+        .controls { margin-bottom: 20px; padding: 15px; background: #eef2f3; border-radius: 10px; }
+        .wordle-row { display: flex; justify-content: center; margin-bottom: 5px; }
+        .letter-box { width: 50px; height: 60px; border: 2px solid #ddd; margin: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; border-radius: 4px; background: #fff; }
+        .hand-img { width: 35px; height: 35px; margin-bottom: 2px; }
+        .status-msg { font-weight: bold; margin: 15px; color: var(--nzsl-blue); height: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px; border: none; background: var(--nzsl-blue); color: white; }
+        button:disabled { background: #ccc; }
+        select { padding: 8px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1>NZSL Connection Game</h1>
-        <div class="score">Score: <span id="score">0</span></div>
-        <div class="category-links">
-            <h2>NZSL Topics</h2>
-            <a href="#family">Family</a>
-            <a href="#animals">Animals</a>
-            <a href="#food">Food</a>
-            <a href="#numbers">Numbers</a>
-            <a href="#colours">Colours</a>
-            <a href="#actions">Actions</a>
-            <a href="#emotions">Emotions</a>
-            <a href="#school">School</a>
-            <a href="#bodyparts">Body Parts</a>
-            <a href="#dailyactivities">Daily Activities</a>
-        </div>
-        <div id="game"></div>
+<div class="container">
+    <h1>🇳🇿 NZSL Learning Hub</h1>
+    <div class="controls">
+        <label><strong>Select Mode:</strong></label>
+        <select id="gameMode" onchange="initGame()">
+            <option value="connections">Connections (Categories)</option>
+            <option value="wordle">Fingerspelling Wordle</option>
+        </select>
+        
+        <label style="margin-left: 20px;"><strong>Topic:</strong></label>
+        <select id="topicSelect" onchange="initGame()">
+            <option value="family">Family</option>
+            <option value="animals">Animals</option>
+            <option value="food">Food</option>
+            <option value="numbers">Numbers</option>
+            <option value="colours">Colours</option>
+            <option value="actions">Actions</option>
+            <option value="emotions">Emotions</option>
+            <option value="school">School</option>
+            <option value="bodyparts">Body Parts</option>
+            <option value="daily">Daily Activities</option>
+        </select>
+        <button onclick="initGame()" style="margin-left:15px;">New Daily Puzzle</button>
     </div>
-    <script>
-        let score = 0;
-        const scoreDisplay = document.getElementById('score');
-        // Game Logic & Mechanics
-        function updateScore(points) {
-            score += points;
-            scoreDisplay.textContent = score;
+
+    <div id="game-area"></div>
+    <div id="status" class="status-msg"></div>
+    
+    <div id="dashboard" style="margin-top:20px; padding-top:20px; border-top: 1px solid #ddd;">
+        <strong>Class Progress Today:</strong> 
+        Plays: <span id="totalPlays">0</span> | Wins: <span id="totalWins">0</span>
+    </div>
+</div>
+
+<script>
+const VOCAB = {
+    family: { connections: [{ cat: "Parents", words: ["MOTHER", "FATHER", "MUM", "DAD"], color: "#f9df6d" }, { cat: "Siblings", words: ["SISTER", "BROTHER", "TWIN", "COUSIN"], color: "#a0c35a" }, { cat: "Grandparents", words: ["GRANDMOTHER", "GRANDFATHER", "NANA", "PAPA"], color: "#b0c4ef" }, { cat: "Relatives", words: ["AUNT", "UNCLE", "NIECE", "NEPHEW"], color: "#ba81c5" }], words: ["MOTHER", "FATHER", "SISTER", "BROTHER"] },
+    animals: { connections: [{ cat: "Mammals", words: ["CAT", "DOG", "COW", "HORSE"], color: "#f9df6d" }, { cat: "Birds", words: ["BIRD", "DUCK", "CHICKEN", "EAGLE"], color: "#a0c35a" }, { cat: "Reptiles", words: ["SNAKE", "LIZARD", "FROG", "TURTLE"], color: "#b0c4ef" }, { cat: "Marine", words: ["FISH", "WHALE", "DOLPHIN", "SHARK"], color: "#ba81c5" }], words: ["CAT", "DOG", "FISH", "BIRD"] },
+    food: { connections: [{ cat: "Fruits", words: ["APPLE", "BANANA", "ORANGE", "GRAPE"], color: "#f9df6d" }, { cat: "Vegetables", words: ["CARROT", "LETTUCE", "POTATO", "ONION"], color: "#a0c35a" }, { cat: "Meals", words: ["BREAKFAST", "LUNCH", "DINNER", "SNACK"], color: "#b0c4ef" }, { cat: "Drinks", words: ["WATER", "MILK", "JUICE", "TEA"], color: "#ba81c5" }], words: ["APPLE", "BREAD", "MILK", "WATER"] },
+    numbers: { connections: [{ cat: "1-5", words: ["ONE", "TWO", "THREE", "FOUR"], color: "#f9df6d" }, { cat: "5-10", words: ["FIVE", "SIX", "SEVEN", "EIGHT"], color: "#a0c35a" }, { cat: "10+", words: ["NINE", "TEN", "ELEVEN", "TWELVE"], color: "#b0c4ef" }, { cat: "Higher", words: ["TWENTY", "FIFTY", "HUNDRED", "THOUSAND"], color: "#ba81c5" }], words: ["ONE", "FIVE", "TEN", "TWENTY"] },
+    colours: { connections: [{ cat: "Primary", words: ["RED", "BLUE", "YELLOW", "GREEN"], color: "#f9df6d" }, { cat: "Dark", words: ["BLACK", "BROWN", "GREY", "PURPLE"], color: "#a0c35a" }, { cat: "Light", words: ["WHITE", "PINK", "ORANGE", "CREAM"], color: "#b0c4ef" }, { cat: "Natural", words: ["GOLD", "SILVER", "BRONZE", "COPPER"], color: "#ba81c5" }], words: ["RED", "BLUE", "GREEN", "YELLOW"] },
+    actions: { connections: [{ cat: "Movement", words: ["RUN", "WALK", "JUMP", "SIT"], color: "#f9df6d" }, { cat: "Hands", words: ["TAKE", "GIVE", "HOLD", "THROW"], color: "#a0c35a" }, { cat: "Talk", words: ["TALK", "LISTEN", "SIGN", "ASK"], color: "#b0c4ef" }, { cat: "Care", words: ["SLEEP", "EAT", "DRINK", "WASH"], color: "#ba81c5" }], words: ["RUN", "WALK", "JUMP", "STAND"] },
+    emotions: { connections: [{ cat: "Happy", words: ["HAPPY", "GLAD", "EXCITED", "PROUD"], color: "#f9df6d" }, { cat: "Sad", words: ["SAD", "UPSET", "CRY", "LONELY"], color: "#a0c35a" }, { cat: "Angry", words: ["ANGRY", "CROSS", "MAD", "FURIOUS"], color: "#b0c4ef" }, { cat: "Calm", words: ["PEACE", "CALM", "QUIET", "RELAX"], color: "#ba81c5" }], words: ["HAPPY", "ANGRY", "PROUD", "UPSET"] },
+    school: { connections: [{ cat: "Literacy", words: ["BOOK", "READ", "WRITE", "STORY"], color: "#f9df6d" }, { cat: "Stationery", words: ["PEN", "PAPER", "PENCIL", "GLUE"], color: "#a0c35a" }, { cat: "People", words: ["TEACHER", "STUDENT", "FRIEND", "PRINCIPAL"], color: "#b0c4ef" }, { cat: "Learning", words: ["LEARN", "THINK", "WATCH", "SIGN"], color: "#ba81c5" }], words: ["LEARN", "WRITE", "STUDY", "BOOKS"] },
+    bodyparts: { connections: [{ cat: "Head", words: ["HEAD", "FACE", "NOSE", "EYES"], color: "#f9df6d" }, { cat: "Arms", words: ["ARM", "HAND", "FINGER", "ELBOW"], color: "#a0c35a" }, { cat: "Legs", words: ["LEG", "FOOT", "KNEE", "TOE"], color: "#b0c4ef" }, { cat: "Body", words: ["BODY", "CHEST", "BACK", "STOMACH"], color: "#ba81c5" }], words: ["HEAD", "HAND", "LEG", "BODY"] },
+    daily: { connections: [{ cat: "Morning", words: ["WAKE", "SHOWER", "BREAKFAST", "BRUSH"], color: "#f9df6d" }, { cat: "Day", words: ["WORK", "PLAY", "STUDY", "MEETING"], color: "#a0c35a" }, { cat: "Evening", words: ["DINNER", "RELAX", "WATCH", "READ"], color: "#b0c4ef" }, { cat: "Night", words: ["SLEEP", "BED", "DREAM", "REST"], color: "#ba81c5" }], words: ["WAKE", "WORK", "SLEEP", "DREAM"] }
+};
+
+let selectedTiles = [];
+let mistakes = 0;
+let wordleGuesses = 0;
+const MAX_WORDLE_GUESSES = 6;
+
+function initGame() {
+    const mode = document.getElementById('gameMode').value;
+    const topic = document.getElementById('topicSelect').value;
+    const area = document.getElementById('game-area');
+    const status = document.getElementById('status');
+    status.innerText = "";
+    area.innerHTML = "";
+    mistakes = 0;
+    wordleGuesses = 0;
+
+    if (mode === 'connections') {
+        loadConnections(topic);
+    } else {
+        loadWordle(topic);
+    }
+}
+
+function loadConnections(topic) {
+    const area = document.getElementById('game-area');
+    const categories = VOCAB[topic].connections;
+    let allWords = [];
+    categories.forEach(c => c.words.forEach(w => allWords.push({text: w, group: c.cat, color: c.color})));
+    allWords.sort(() => Math.random() - 0.5);
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    allWords.forEach(wordObj => {
+        const btn = document.createElement('div');
+        btn.className = 'tile';
+        btn.innerText = wordObj.text;
+        btn.onclick = () => {
+            if (btn.classList.contains('solved')) return;
+            btn.classList.toggle('selected');
+            updateSelection();
+        };
+        btn.dataset.group = wordObj.group;
+        btn.dataset.color = wordObj.color;
+        grid.appendChild(btn);
+    });
+    area.appendChild(grid);
+    const checkBtn = document.createElement('button');
+    checkBtn.id = "submitGuess";
+    checkBtn.innerText = "Check Group (0/4)";
+    checkBtn.disabled = true;
+    checkBtn.onclick = validateGroup;
+    area.appendChild(checkBtn);
+}
+
+function updateSelection() {
+    selectedTiles = Array.from(document.querySelectorAll('.tile.selected'));
+    const btn = document.getElementById('submitGuess');
+    btn.innerText = `Check Group (${selectedTiles.length}/4)`;
+    btn.disabled = selectedTiles.length !== 4;
+}
+
+function validateGroup() {
+    const group = selectedTiles[0].dataset.group;
+    const isCorrect = selectedTiles.every(t => t.dataset.group === group);
+    if (isCorrect) {
+        const color = selectedTiles[0].dataset.color;
+        selectedTiles.forEach(t => {
+            t.classList.remove('selected');
+            t.classList.add('solved');
+            t.style.backgroundColor = color;
+        });
+        document.getElementById('status').innerText = "Awesome! Category: " + group;
+        checkWin();
+    } else {
+        mistakes++;
+        selectedTiles.forEach(t => t.classList.remove('selected'));
+        document.getElementById('status').innerText = `Not quite! Mistakes: ${mistakes}`;
+    }
+    updateSelection();
+}
+
+function loadWordle(topic) {
+    const area = document.getElementById('game-area');
+    const words = VOCAB[topic].words;
+    const target = words[0];
+    area.innerHTML = `<h3>Guess the ${target.length}-letter word</h3><div id="wordleBoard"></div><input type="text" id="wordleInput" maxlength="${target.length}" style="text-transform:uppercase; padding:10px; font-size:18px; width:150px;"><button onclick="submitWordleGuess('${target}')">Guess</button><p>Guesses: <span id="gCount">0</span> / 6</p>`;
+}
+
+function submitWordleGuess(target) {
+    const input = document.getElementById('wordleInput');
+    const guess = input.value.toUpperCase();
+    if (guess.length !== target.length) return;
+    wordleGuesses++;
+    const row = document.createElement('div');
+    row.className = 'wordle-row';
+    guess.split('').forEach((char, i) => {
+        const box = document.createElement('div');
+        box.className = 'letter-box';
+        const img = document.createElement('img');
+        img.src = `https://dummyimage.com/40x40/005abb/ffffff&text=${char}`;
+        img.className = 'hand-img';
+        box.appendChild(img);
+        const text = document.createElement('span');
+        text.innerText = char;
+        box.appendChild(text);
+        if (char === target[i]) {
+            box.style.backgroundColor = 'var(--correct)';
+            box.style.color = 'white';
+        } else if (target.includes(char)) {
+            box.style.backgroundColor = 'var(--present)';
+            box.style.color = 'white';
+        } else {
+            box.style.backgroundColor = 'var(--absent)';
+            box.style.color = 'white';
         }
-        // Initialize Game Modes
-        function startGame(mode) {
-            // game initialization logic based on the mode (Connections/Wordle)
-            if (mode === 'Connections') {
-                // Connections mode logic
-            } else if (mode === 'Wordle') {
-                // Wordle mode logic
-            }
-        }
-        // Example: Start Connections mode
-        startGame('Connections');
-    </script>
+        row.appendChild(box);
+    });
+    document.getElementById('wordleBoard').appendChild(row);
+    document.getElementById('gCount').innerText = wordleGuesses;
+    input.value = "";
+    if (guess === target) {
+        document.getElementById('status').innerText = "🏆 CLASS WIN!";
+        updateStats(true);
+    } else if (wordleGuesses >= MAX_WORDLE_GUESSES) {
+        document.getElementById('status').innerText = "Game Over! The word was " + target;
+        updateStats(false);
+    }
+}
+
+function checkWin() {
+    if (document.querySelectorAll('.tile.solved').length === 16) {
+        document.getElementById('status').innerText = "🏆 CATEGORIES COMPLETE!";
+        updateStats(true);
+    }
+}
+
+function updateStats(isWin) {
+    let wins = parseInt(localStorage.getItem('classWins') || 0);
+    let plays = parseInt(localStorage.getItem('classPlays') || 0);
+    plays++;
+    if (isWin) wins++;
+    localStorage.setItem('classWins', wins);
+    localStorage.setItem('classPlays', plays);
+    document.getElementById('totalWins').innerText = wins;
+    document.getElementById('totalPlays').innerText = plays;
+}
+
+window.onload = () => {
+    document.getElementById('totalWins').innerText = localStorage.getItem('classWins') || 0;
+    document.getElementById('totalPlays').innerText = localStorage.getItem('classPlays') || 0;
+    initGame();
+};
+</script>
 </body>
 </html>
