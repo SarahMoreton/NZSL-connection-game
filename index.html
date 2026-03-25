@@ -4,60 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NZSL Connection Game</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; }
+        .game-container { max-width: 800px; margin: auto; padding: 20px; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; }
+        .score { font-size: 20px; margin: 20px 0; }
+        .handshape { width: 100px; height: 100px; }
+        .category-links a { margin-right: 15px; }
+    </style>
 </head>
 <body>
-    <header>
+    <div class="game-container">
         <h1>NZSL Connection Game</h1>
-        <nav>
-            <ul>
-                <li><a href="#family">Family</a></li>
-                <li><a href="#animals">Animals</a></li>
-                <li><a href="#food">Food</a></li>
-                <li><a href="#numbers">Numbers</a></li>
-                <li><a href="#colours">Colours</a></li>
-                <li><a href="#actions">Actions</a></li>
-                <li><a href="#emotions">Emotions</a></li>
-                <li><a href="#school">School</a></li>
-                <li><a href="#body_parts">Body Parts</a></li>
-                <li><a href="#daily_activities">Daily Activities</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <main>
-        <section id="game_modes">
-            <h2>Choose Game Mode</h2>
-            <button id="connections_mode">Connections</button>
-            <button id="wordle_mode">Wordle</button>
-        </section>
-
-        <section id="game_area">
-            <!-- Game area for displaying questions and score -->
-            <h3 id="current_topic"></h3>
-            <div id="scoreboard">
-                <p>Score: <span id="score">0</span></p>
-            </div>
-            <div id="game_content"></div>
-        </section>
-    </main>
-
-    <footer>
-        <h2>NZSL Dictionary Links</h2>
-        <ul>
-            <li><a href="https://www.nzsl.dictionary.co.nz/family">Family</a></li>
-            <li><a href="https://www.nzsl.dictionary.co.nz/animals">Animals</a></li>
-            <li><a href="https://www.nzsl.dictionary.co.nz/food">Food</a></li>
-            <li><a href="https://www.nzsl.dictionary.co.nz/numbers">Numbers</a></li>
-            <li><a href="https://www.nzsl.dictionary.co.nz/colours">Colours</a></li>
-            <li><a href="https://www.nzsl.dictionary.co.nz/actions">Actions</a></li>
-            <li><a href="https://www.nzsl.dictionary.co.nz/emotions">Emotions</a></li>
-            <li><a href="https://www.nzsl.dictionary.co.nz/school">School</a></li>
-            <li><a href="https://www.nzsl.dictionary.co.nz/body-parts">Body Parts</a></li>
-            <li><a href="https://www.nzsl.dictionary.co.nz/daily-activities">Daily Activities</a></li>
-        </ul>
-        <p>&copy; 2026 NZSL Connection Game</p>
-    </footer>
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="category-links">
+            <h2>NZSL Topics</h2>
+            <a href="#family">Family</a>
+            <a href="#animals">Animals</a>
+            <a href="#food">Food</a>
+            <a href="#numbers">Numbers</a>
+            <a href="#colours">Colours</a>
+            <a href="#actions">Actions</a>
+            <a href="#emotions">Emotions</a>
+            <a href="#school">School</a>
+            <a href="#bodyparts">Body Parts</a>
+            <a href="#dailyactivities">Daily Activities</a>
+        </div>
+        <div id="game"></div>
+    </div>
+    <script>
+        let score = 0;
+        const scoreDisplay = document.getElementById('score');
+        // Game Logic & Mechanics
+        function updateScore(points) {
+            score += points;
+            scoreDisplay.textContent = score;
+        }
+        // Initialize Game Modes
+        function startGame(mode) {
+            // game initialization logic based on the mode (Connections/Wordle)
+            if (mode === 'Connections') {
+                // Connections mode logic
+            } else if (mode === 'Wordle') {
+                // Wordle mode logic
+            }
+        }
+        // Example: Start Connections mode
+        startGame('Connections');
+    </script>
 </body>
 </html>
