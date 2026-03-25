@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NZSL Classroom Learning Hub</title>
+    <style>
+        :root {
+            --correct: #6aaa64;
+            --present: #c9b458;
+            --absent: #787c7e;
+            --nzsl-blue: #005abb;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+        .tile { padding: 20px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; background: #fff; }
+        .tile.selected { background: #bbdefb; border-color: var(--nzsl-blue); }
+        .tile.solved { color: white; cursor: default; }
+        .controls { margin-bottom: 20px; padding: 15px; background: #eef2f3; border-radius: 10px; }
+        .wordle-row { display: flex; justify-content: center; margin-bottom: 5px; }
+        .letter-box { width: 50px; height: 60px; border: 2px solid #ddd; margin: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; border-radius: 4px; background: #fff; }
+        .hand-img { width: 35px; height: 35px; margin-bottom: 2px; }
+        .status-msg { font-weight: bold; margin: 15px; color: var(--nzsl-blue); height: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px; border: none; background: var(--nzsl-blue); color: white; }
+        button:disabled { background: #ccc; }
+        select { padding: 8px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🇳🇿 NZSL Learning Hub</h1>
+    
+    <div class="controls">
+        <label><strong>Select Mode:</strong></label>
+        <select id="gameMode" onchange="initGame()">
+            <option value="connections">Connections (Categories)</option>
+            <option value="wordle">Fingerspelling Wordle</option>
+        </select>
+        
+        <label style="margin-left: 20px;"><strong>Topic:</strong></label>
+        <select id="topicSelect" onchange="initGame()">
+            <option value="school">School & Learning</option>
+            <option value="emotions">Emotions</option>
+            <option value="daily">Daily Needs</option>
+        </select>
+        <button onclick="initGame()" style="margin-left:15px;">New Daily Puzzle</button>
+    </div>
+
+    <div id="game-area"></div>
+    <div id="status" class="status-msg"></div>
+    
+    <div id="dashboard" style="margin-top:20px; padding-top:20px; border-top: 1px solid #ddd;">
+        <strong>Class Progress Today:</strong> 
+        Plays: <span id="totalPlays">0</span> | Wins: <span id="totalWins">0</span>
+    </div>
+</div>
+
+<script>
+// --- DATA & CONFIG ---
+const VOCAB = {
+    school: {
+        connections: [
+            { cat: "Literacy", words: ["BOOK", "READ", "WRITE", "STORY"], color: "#f9df6d" },
+            { cat: "Stationery", words: ["PEN", "PAPER", "PENCIL", "GLUE"], color: "#a0c35a" },
+            { cat: "People", words: ["TEACHER", "STUDENT", "FRIEND", "PRINCIPAL"], color: "#b0c4ef" },
+            { cat: "Actions", words: ["LEARN", "THINK", "WATCH", "SIGN"], color: "#ba81c5" }
+        ],
+        words: ["LEARN", "WRITE", "STUDY", "BOOKS"]
+    },
+    emotions: {
+        connections: [
+            { cat: "Happy", words: ["HAPPY", "GLAD", "EXCITED", "PROUD"], color: "#f9df6d" },
+            { cat: "Sad", words: ["SAD", "UPSET", "CRY", "LONELY"], color: "#a0c35a" },
+            { cat: "Angry", words: ["ANGRY", "CROSS", "MAD", "FURIOUS"], color: "#b0c4ef" },
+            { cat: "Calm", words: ["PEACE", "CALM", "QUIET", "RELAX"], color: "#ba81c5" }
+        ],
+        words: ["HAPPY", "ANGRY", "PROUD", "UPSET"]
+    }
+};
+
+let selectedTiles = [];
+let mistakes = 0;
+let wordleGuesses = 0;
+const MAX_WORDLE_GUESSES = 6;
+
+// --- CORE LOGIC ---
+function getDailySeed() {
+    return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function initGame() {
+    const mode = document.getElementById('gameMode').value;
+    const topic = document.getElementById('topicSelect').value;
+    const area = document.getElementById('game-area');
+    const status = document.getElementById('status');
+    status.innerText = "";
+    area.innerHTML = "";
+    mistakes = 0;
+    wordleGuesses = 0;
+
+    if (mode === 'connections') {
+        loadConnections(topic);
+    } else {
+        loadWordle(topic);
+    }
+}
+
+function loadConnections(topic) {
+    const area = document.getElementById('game-area');
+    const categories = VOCAB[topic].connections;
+    let allWords = [];
+    categories.forEach(c => c.words.forEach(w => allWords.push({text: w, group: c.cat, color: c.color})));
+    
+    // Simple shuffle
+    allWords.sort(() => Math.random() - 0.5);
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    allWords.forEach(wordObj => {
+        const btn = document.createElement('div');
+        btn.className = 'tile';
+        btn.innerText = wordObj.text;
+        btn.onclick = () => {
+            if (btn.classList.contains('solved')) return;
+            btn.classList.toggle('selected');
+            updateSelection();
+        };
+        btn.dataset.group = wordObj.group;
+        btn.dataset.color = wordObj.color;
+        grid.appendChild(btn);
+    });
+    area.appendChild(grid);
+    
+    const checkBtn = document.createElement('button');
+    checkBtn.id = "submitGuess";
+    checkBtn.innerText = "Check Group (0/4)";
+    checkBtn.disabled = true;
+    checkBtn.onclick = validateGroup;
+    area.appendChild(checkBtn);
+}
+
+function updateSelection() {
+    selectedTiles = Array.from(document.querySelectorAll('.tile.selected'));
+    const btn = document.getElementById('submitGuess');
+    btn.innerText = `Check Group (${selectedTiles.length}/4)`;
+    btn.disabled = selectedTiles.length !== 4;
+}
+
+function validateGroup() {
+    const group = selectedTiles[0].dataset.group;
+    const isCorrect = selectedTiles.every(t => t.dataset.group === group);
+
+    if (isCorrect) {
+        const color = selectedTiles[0].dataset.color;
+        selectedTiles.forEach(t => {
+            t.classList.remove('selected');
+            t.classList.add('solved');
+            t.style.backgroundColor = color;
+        });
+        document.getElementById('status').innerText = "Awesome! Category: " + group;
+        checkWin();
+    } else {
+        mistakes++;
+        selectedTiles.forEach(t => t.classList.remove('selected'));
+        document.getElementById('status').innerText = `Not quite! Mistakes: ${mistakes}`;
+    }
+    updateSelection();
+}
+
+function loadWordle(topic) {
+    const area = document.getElementById('game-area');
+    const words = VOCAB[topic].words;
+    const target = words[0]; // In daily mode, this would be seed-based
+
+    area.innerHTML = `
+        <h3>Guess the ${target.length}-letter word</h3>
+        <div id="wordleBoard"></div>
+        <input type="text" id="wordleInput" maxlength="${target.length}" style="text-transform:uppercase; padding:10px; font-size:18px; width:150px;">
+        <button onclick="submitWordleGuess('${target}')">Guess</button>
+        <p>Guesses: <span id="gCount">0</span> / 6</p>
+    `;
+}
+
+function submitWordleGuess(target) {
+    const input = document.getElementById('wordleInput');
+    const guess = input.value.toUpperCase();
+    if (guess.length !== target.length) return;
+
+    wordleGuesses++;
+    const row = document.createElement('div');
+    row.className = 'wordle-row';
+
+    guess.split('').forEach((char, i) => {
+        const box = document.createElement('div');
+        box.className = 'letter-box';
+        
+        // Placeholder for NZSL Handshape Image
+        const img = document.createElement('img');
+        img.src = `https://dummyimage.com/40x40/005abb/ffffff&text=${char}`;
+        img.className = 'hand-img';
+        
+        box.appendChild(img);
+        const text = document.createElement('span');
+        text.innerText = char;
+        box.appendChild(text);
+
+        if (char === target[i]) {
+            box.style.backgroundColor = 'var(--correct)';
+            box.style.color = 'white';
+        } else if (target.includes(char)) {
+            box.style.backgroundColor = 'var(--present)';
+            box.style.color = 'white';
+        } else {
+            box.style.backgroundColor = 'var(--absent)';
+            box.style.color = 'white';
+        }
+        row.appendChild(box);
+    });
+
+    document.getElementById('wordleBoard').appendChild(row);
+    document.getElementById('gCount').innerText = wordleGuesses;
+    input.value = "";
+
+    if (guess === target) {
+        document.getElementById('status').innerText = "🏆 CLASS WIN!";
+        updateStats(true);
+    } else if (wordleGuesses >= MAX_WORDLE_GUESSES) {
+        document.getElementById('status').innerText = "Game Over! The word was " + target;
+        updateStats(false);
+    }
+}
+
+function checkWin() {
+    if (document.querySelectorAll('.tile.solved').length === 16) {
+        document.getElementById('status').innerText = "🏆 CATEGORIES COMPLETE!";
+        updateStats(true);
+    }
+}
+
+function updateStats(isWin) {
+    let wins = parseInt(localStorage.getItem('classWins') || 0);
+    let plays = parseInt(localStorage.getItem('classPlays') || 0);
+    plays++;
+    if (isWin) wins++;
+    localStorage.setItem('classWins', wins);
+    localStorage.setItem('classPlays', plays);
+    document.getElementById('totalWins').innerText = wins;
+    document.getElementById('totalPlays').innerText = plays;
+}
+
+// Initialize on load
+window.onload = () => {
+    document.getElementById('totalWins').innerText = localStorage.getItem('classWins') || 0;
+    document.getElementById('totalPlays').innerText = localStorage.getItem('classPlays') || 0;
+    initGame();
+};
+</script>
+
+</body>
+</html>
